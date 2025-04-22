@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+# Defaults
+user="$(id -u):$(id -g)"
+image=""
+workdir="/workspace"
+
+usage() {
+    echo "Usage: here -i <image> [-r] [-u <UID:GID>] [-w <workdir>] [command...]"
+    echo ""
+    echo "Options:"
+    echo "  -i <image>      Docker image to use (required)"
+    echo "  -r              Run as root (equivalent to -u 0:0)"
+    echo "  -u <UID:GID>    Run as specific user (default: current user IDs)"
+    echo "  -w <workdir>    Set working directory inside container (default: /workspace)"
+    echo "  -h, --help      Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  here -i alpine echo Hello"
+    echo "  here -i ubuntu -r bash"
+    echo "  here -i node:alpine -u 1000:1000 -w /code node index.js"
+    echo "  here -i alpine                    # Opens interactive shell"
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -i)
+        image="$2"
+        shift 2
+        ;;
+    -r)
+        user="0:0"
+        shift
+        ;;
+    -u)
+        user="$2"
+        shift 2
+        ;;
+    -w)
+        workdir="$2"
+        shift 2
+        ;;
+    -h | --help)
+        usage
+        exit 0
+        ;;
+    *)
+        break
+        ;;
+    esac
+done
+
+if [ -z "$image" ]; then
+    usage
+    exit 1
+fi
+
+cmd=("$@")
+
+toolbox() {
+    docker run \
+        --rm \
+        --interactive \
+        --tty \
+        --workdir "$workdir" \
+        --volume "$PWD:$workdir" \
+        --user "$user" \
+        "$@"
+}
+
+if docker run --rm "$image" sh -c "command -v bash" >/dev/null 2>&1; then
+    shell="bash"
+else
+    shell="sh"
+fi
+
+if [ ${#cmd[@]} -gt 0 ]; then
+    toolbox --entrypoint "$shell" "$image" -c "${cmd[*]}"
+else
+    toolbox --entrypoint "$shell" "$image"
+fi
