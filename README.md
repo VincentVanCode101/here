@@ -40,7 +40,7 @@ This will spawn a single Docker container without any additions and default sett
 (see `here -h` for more information)
 
 
-### 🧪 Usage Examples
+### Usage Examples
 
 ```bash
 here -i alpine echo hi              # Runs a quick command
