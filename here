@@ -55,6 +55,11 @@ if [ -z "$image" ]; then
     exit 1
 fi
 
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+    echo "Image '$image' not found locally. Pulling..."
+    docker pull "$image"
+fi
+
 cmd=("$@")
 
 toolbox() {
