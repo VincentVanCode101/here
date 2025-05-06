@@ -1,9 +1,14 @@
+Here’s the updated `README.md` with the new `-e` flag (`--env`) documented:
+
+---
+
 # here — Run containers right **here**, effortlessly
 
 `here` is a lightweight Docker wrapper for quickly dropping into a container with sane defaults and zero config. It's meant to be used just like any shell command.
 
 Why the name? Because it’s literally the vibe:
-> *"Hmm, here... a `node:alpine` would be nice."*  
+
+> *"Hmm, here... a `node:alpine` would be nice."*
 > → `here -i node:alpine`
 
 ## Installation
@@ -26,26 +31,41 @@ If you'd rather avoid symlinking:
 export PATH="$PATH:/path/to/this/repo/here"
 ```
 
-You can also make this permanent by adding it to your shell config (e.g. .bashrc, .zshrc).
-
+You can also make this permanent by adding it to your shell config (e.g. `.bashrc`, `.zshrc`).
 
 ## Basic usage
-The simplest way to use here is without any config file, only with parameter.
-```shell
-here -i <docker image name>
-```
-This will spawn a single Docker container without any additions and default settings like workdir and current user ID
-(see `here -h` for more information)
 
-
-### Usage Examples
+The simplest way to use `here` is without any config file, only with parameters:
 
 ```bash
-here -i alpine echo hi              # Runs a quick command
-here -i alpine                      # Opens shell (sh)
-here -i ubuntu                     # Opens shell (bash)
-here -i ubuntu -r bash             # Run as root
-here -i node:alpine node           # Starts Node.js REPL
-here -i ubuntu -u 1000:1000 bash   # Run with specific UID:GID
-here -i alpine -w /app ls          # Custom workdir
+here -i <docker image name>
 ```
+
+This will spawn a single Docker container with default settings like workdir and current user ID.
+(See `here -h` for more information.)
+
+## Usage Examples
+
+```bash
+here -i alpine echo hi                      # Run a quick command
+here -i alpine                              # Open a shell (sh)
+here -i ubuntu                              # Open a shell (bash)
+here -i ubuntu -r bash                      # Run as root
+here -i node:alpine node                    # Start Node.js REPL
+here -i ubuntu -u 1000:1000 bash            # Run with specific UID:GID
+here -i alpine -w /app ls                   # Set a custom working directory
+here -i python:3.11 -e "FOO=bar" env        # Pass an environment variable
+```
+---
+
+## Options
+
+| Option         | Description                                                    |
+| -------------- | -------------------------------------------------------------- |
+| `-i <image>`   | Docker image to use (required)                                 |
+| `-r`           | Run as root (equivalent to `-u 0:0`)                           |
+| `-u <UID:GID>` | Run as a specific user (default: current UID\:GID)             |
+| `-w <dir>`     | Set working directory inside container (default: `/workspace`) |
+| `-e <VAR=VAL>` | Set environment variable inside container                      |
+| `-h`, `--help` | Show help message                                              |
+
