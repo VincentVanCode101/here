@@ -6,8 +6,6 @@ Why the name? Because it’s literally the vibe:
 > *"Hmm, here... a `node:alpine` would be nice."*  
 > → `here -i node:alpine`
 
-
-
 ## Installation
 
 You have two options to install `here`:
