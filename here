@@ -40,6 +40,10 @@ while [[ $# -gt 0 ]]; do
         workdir="$2"
         shift 2
         ;;
+    -e)
+        env_vars+=("--env" "$2")
+        shift 2
+        ;;
     -h | --help)
         usage
         exit 0
@@ -63,6 +67,7 @@ fi
 cmd=("$@")
 
 toolbox() {
+    echo "+ docker run --rm -it -w \"$workdir\" -v \"$PWD:$workdir\" -u \"$user\" ${env_vars[*]} $*"
     docker run \
         --rm \
         --interactive \
@@ -70,6 +75,7 @@ toolbox() {
         --workdir "$workdir" \
         --volume "$PWD:$workdir" \
         --user "$user" \
+        "${env_vars[@]}" \
         "$@"
 }
 
