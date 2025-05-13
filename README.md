@@ -1,7 +1,3 @@
-Here’s the updated `README.md` with the new `-e` flag (`--env`) documented:
-
----
-
 # here — Run containers right **here**, effortlessly
 
 `here` is a lightweight Docker wrapper for quickly dropping into a container with sane defaults and zero config. It's meant to be used just like any shell command.
