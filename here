@@ -4,24 +4,31 @@
 user="$(id -u):$(id -g)"
 image=""
 workdir="/workspace"
+declare -a env_vars
+declare -a port_maps
 
 usage() {
-    echo "Usage: here -i <image> [-r] [-u <UID:GID>] [-w <workdir>] [command...]"
-    echo ""
-    echo "Options:"
-    echo "  -i <image>      Docker image to use (required)"
-    echo "  -r              Run as root (equivalent to -u 0:0)"
-    echo "  -u <UID:GID>    Run as specific user (default: current user IDs)"
-    echo "  -w <workdir>    Set working directory inside container (default: /workspace)"
-    echo "  -h, --help      Show this help message"
-    echo ""
-    echo "Examples:"
-    echo "  here -i alpine echo Hello"
-    echo "  here -i ubuntu -r bash"
-    echo "  here -i node:alpine -u 1000:1000 -w /code node index.js"
-    echo "  here -i alpine                    # Opens interactive shell"
+    cat <<EOF
+Usage: here -i <image> [-r] [-u <UID:GID>] [-w <workdir>] [-e <VAR=VAL>] [-p <host:container>] [command...]
+Options:
+  -i <image>      Docker image to use (required)
+  -r              Run as root (equivalent to -u 0:0)
+  -u <UID:GID>    Run as specific user (default: current user IDs)
+  -w <workdir>    Set working directory inside container (default: /workspace)
+  -e <VAR=VAL>    Set environment variable inside container
+  -p <h:c>        Publish port mapping (host:container), repeatable
+  -h, --help      Show this help message
+Examples:
+  here -i alpine echo Hello
+  here -i ubuntu -r bash
+  here -i node:alpine -u 1000:1000 -w /code node index.js
+  here -i alpine                    # Opens interactive shell
+  here -i node:alpine -p 3000:3000 node server.js
+  here -i redis -p 6379:6379 -p 16379:16379
+EOF
 }
 
+# parse flags
 while [[ $# -gt 0 ]]; do
     case "$1" in
     -i)
@@ -44,13 +51,15 @@ while [[ $# -gt 0 ]]; do
         env_vars+=("--env" "$2")
         shift 2
         ;;
+    -p)
+        port_maps+=("-p" "$2")
+        shift 2
+        ;;
     -h | --help)
         usage
         exit 0
         ;;
-    *)
-        break
-        ;;
+    *) break ;;
     esac
 done
 
@@ -64,20 +73,9 @@ if ! docker image inspect "$image" >/dev/null 2>&1; then
     docker pull "$image"
 fi
 
-cmd=("$@")
-
-toolbox() {
-    echo "+ docker run --rm -it -w \"$workdir\" -v \"$PWD:$workdir\" -u \"$user\" ${env_vars[*]} $*"
-    docker run \
-        --rm \
-        --interactive \
-        --tty \
-        --workdir "$workdir" \
-        --volume "$PWD:$workdir" \
-        --user "$user" \
-        "${env_vars[@]}" \
-        "$@"
-}
+run_flags=(--rm --interactive --tty -w "$workdir" -v "$PWD:$workdir" -u "$user")
+run_flags+=("${env_vars[@]}")
+run_flags+=("${port_maps[@]}")
 
 if docker run --rm "$image" sh -c "command -v bash" >/dev/null 2>&1; then
     shell="bash"
@@ -85,8 +83,10 @@ else
     shell="sh"
 fi
 
-if [ ${#cmd[@]} -gt 0 ]; then
-    toolbox --entrypoint "$shell" "$image" -c "${cmd[*]}"
+if [ $# -gt 0 ]; then
+    echo "+ docker run ${run_flags[*]} --entrypoint \"$shell\" \"$image\" -c \"$*\""
+    docker run "${run_flags[@]}" --entrypoint "$shell" "$image" -c "$*"
 else
-    toolbox --entrypoint "$shell" "$image"
+    echo "+ docker run ${run_flags[*]} --entrypoint \"$shell\" \"$image\""
+    docker run "${run_flags[@]}" --entrypoint "$shell" "$image"
 fi

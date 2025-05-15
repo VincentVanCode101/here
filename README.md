@@ -43,25 +43,27 @@ This will spawn a single Docker container with default settings like workdir and
 ## Usage Examples
 
 ```bash
-here -i alpine echo hi                      # Run a quick command
-here -i alpine                              # Open a shell (sh)
-here -i ubuntu                              # Open a shell (bash)
-here -i ubuntu -r bash                      # Run as root
-here -i node:alpine node                    # Start Node.js REPL
-here -i ubuntu -u 1000:1000 bash            # Run with specific UID:GID
-here -i alpine -w /app ls                   # Set a custom working directory
-here -i python:3.11 -e "FOO=bar" env        # Pass an environment variable
+here -i alpine echo hi                          # Run a quick command
+here -i alpine                                  # Open a shell (sh)
+here -i ubuntu                                  # Open a shell (bash)
+here -i ubuntu -r bash                          # Run as root
+here -i node:alpine node                        # Start Node.js REPL
+here -i ubuntu -u 1000:1000 bash                # Run with specific UID:GID
+here -i alpine -w /app ls                       # Set a custom working directory
+here -i python:3.11 -e "FOO=bar" env            # Pass an environment variable
+here -i node:alpine -p 3000:3000 node server.js # Map a single port
+here -i redis -p 6379:6379 -p 16379:16379       # Map multiple ports
 ```
 ---
 
 ## Options
 
-| Option         | Description                                                    |
-| -------------- | -------------------------------------------------------------- |
-| `-i <image>`   | Docker image to use (required)                                 |
-| `-r`           | Run as root (equivalent to `-u 0:0`)                           |
-| `-u <UID:GID>` | Run as a specific user (default: current UID\:GID)             |
-| `-w <dir>`     | Set working directory inside container (default: `/workspace`) |
-| `-e <VAR=VAL>` | Set environment variable inside container                      |
-| `-h`, `--help` | Show help message                                              |
-
+| Option         | Description                                                      |
+| -------------- | ---------------------------------------------------------------- |
+| `-i <image>`   | Docker image to use (required)                                   |
+| `-r`           | Run as root (equivalent to `-u 0:0`)                             |
+| `-u <UID:GID>` | Run as a specific user (default: current UID\:GID)               |
+| `-w <dir>`     | Set working directory inside container (default: `/workspace`)   |
+| `-e <VAR=VAL>` | Set environment variable inside container                        |
+| `-p <h:c>`     | Publish port mapping (host:container), can be used multiple times |
+| `-h`, `--help` | Show help message                                                |
